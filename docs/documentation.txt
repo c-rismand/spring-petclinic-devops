@@ -1,0 +1,118 @@
+1. creat folder in C:\Users\crist\OneDrive\Documents\Homework_ING
+2. conectat la GitHub
+3. git clone https://github.com/spring-projects/spring-petclinic
+4. instalat java de pe https://adoptium.net/temurin
+5. verificat java version
+6. intrat in spring-petclinic
+7. rulat .\mvnw.cmd clean package
+BUILD SUCCESS
+[INFO] The original artifact has been renamed to C:\Users\crist\OneDrive\Documents\Homework_ING\spring-petclinic\target\spring-petclinic-4.0.0-SNAPSHOT.jar.original
+8. dir target, jar available
+9. rulat java -jar target\spring-petclinic-4.0.0-SNAPSHOT.jar
+10. Started PetClinicApplication
+11. validat ca merge aplicatia in browser pe http://localhost:8080/
+12. oprit aplicatia
+13. creat nou folder langa cel clonat 
+mkdir spring-petclinic-devops
+14. creat in interior app folder si in interior copiat spring-petclinic
+mkdir app -> copy spring-petclinic inside
+15. creat si ansible, monitoring, docs folders in spring-petclinic-devops
+16. initializat empty repo :
+C:\Users\crist\OneDrive\Documents\Homework_ING\spring-petclinic-devops>git init
+Initialized empty Git repository in C:/Users/crist/OneDrive/Documents/Homework_ING/spring-petclinic-devops/.git/
+
+17. creat README file
+18. creat git ignore si introdus 
+	target/
+	*.jar
+	.idea/
+	.vscode/
+	*.log
+19. git status, git add si git commit =>
+git commit -m "Initial DevOps project structure"
+
+20. creat repository in git hub : spring-petclinic-devops
+21. legat repo local de cel din GitHub:
+in C:\Users\crist\OneDrive\Documents\Homework_ING\spring-petclinic-devops
+git branch -M main 
+adaugat remote :
+ git remote add origin https://github.com/c-rismand/spring-petclinic-devops.git
+
+22.Push pe noul repo: 
+
+C:\Users\crist\OneDrive\Documents\Homework_ING\spring-petclinic-devops>git push -u origin main
+info: please complete authentication in your browser...
+Enumerating objects: 20, done.
+Counting objects: 100% (20/20), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (17/17), done.
+Writing objects: 100% (20/20), 25.10 KiB | 4.18 MiB/s, done.
+Total 20 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/c-rismand/spring-petclinic-devops.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+
+23. cream azure devops yaml file in spring-petclinic-devops
+notepad azure-pipelines.yml
+git add azure-pipelines.yml
+git commit -m "Add Azure DevOps CI pipeline"
+
+24. creat free trial cont 30 zile azure 
+25. creat organization in azure devops, Project= SpringPetClinic
+26. creat pipeline in azure devops, selectat cod GitHub, authentificare GitHub
+27. Approve & Install Azure Pipelines
+28. Review your pipeline YAML
+29. RUN the pipeline
+30. error ca nu gaseste packetul de mvn pe GitHub
+31. lipeste .mvn
+32. copiat din repo-ul original :xcopy spring-petclinic\.mvn spring-petclinic-devops\app\spring-petclinic\.mvn /E /I /H
+
+33. adaugat in git
+git commit -m "Add wrapper maven file"
+34. rerun pipeline
+35. failed again, lipseste src\checkstyle
+36. copiat 
+Homework_ING>xcopy spring-petclinic\src\ spring-petclinic-devops\app\spring-petclinic\src\ /E /I /H
+37. build cu success in azure devops, artifact created
+
+rulat manual pt validare: C:\Users\crist\Downloads>java -jar spring-petclinic-4.0.0-SNAPSHOT.jar
+38. creat resourcegroup in azure portal: rg-petclinic-devops
+39. creat vm in azure portal : crismand-vm / user crismandroot  cu ip 20.51.132.17
+40. creat pereche cheie private si publica
+41. conectat cu ssh -i crismand-vm_key.pem crismandroot@20.51.132.17
+42. convertit .pem in ppk pt putty
+43. pregatit vm-ul, rulat sudo dnf update -y
+44. instalat java : sudo dnf install java-17-openjdk -y
+45. [crismandroot@crismand-vm ~]$ java -version
+openjdk version "17.0.19" 2026-04-21 LTS
+46. instalat alte tools recommended pt proiect:
+sudo dnf install wget curl git -y
+47. creat user 
+
+[crismandroot@crismand-vm ~]$ sudo useradd crismanduser
+[crismandroot@crismand-vm ~]$ sudo passwd crismanduser
+
+48. add root to crismanduser
+sudo usermod -aG wheel crismanduser
+
+49. creat director pt aplicatie:
+sudo mkdir -p /opt/petclinic
+50. setat owner userul creat adienauri
+sudo chown -R crismanduser:crismanduser /opt/petclinic
+51. deschide firewall pt portul 8080
+sudo firewall-cmd --add-port=8080/tcp --permanent
+sudo firewall-cmd --reload
+52. copiat artifact builded din azure devops catre app directory pe vm
+
+C:\Users\crist\Downloads>scp -i C:\Users\crist\Downloads\crismand-vm_key.pem spring-petclinic-4.0.0-SNAPSHOT.jar crismandroot@20.51.132.17:/opt/petclinic/
+
+53. rulat pe vm, [crismandroot@crismand-vm petclinic]$ java -jar spring-petclinic-4.0.0-SNAPSHOT.jar
+54. deschis port 8080 de pe azure portal ->network->create port rule
+55. repornit aplicatia, testat de pe http://20.51.132.17:8080/ => SUCCESS
+The application was successfully deployed on RHEL 8 VM and exposed via port 8080. HTTP traffic is used for simplicity in the demo environment.
+
+
+
+
+
+
