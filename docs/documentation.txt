@@ -110,6 +110,83 @@ C:\Users\crist\Downloads>scp -i C:\Users\crist\Downloads\crismand-vm_key.pem spr
 54. deschis port 8080 de pe azure portal ->network->create port rule
 55. repornit aplicatia, testat de pe http://20.51.132.17:8080/ => SUCCESS
 The application was successfully deployed on RHEL 8 VM and exposed via port 8080. HTTP traffic is used for simplicity in the demo environment.
+56. creat inca un vm in azure, pt ansible controller -> vm-controller, user ansibleroot
+57. adaugat cheia private a vm2 pe vm1 pt ssh vm1->vm2 
+
+[crismandroot@crismand-vm .ssh]$ ssh -i vm2key.pem ansibleroot@13.72.79.82
+[ansibleroot@controller-vm ~]$
+
+58. generat cate o pereche noua de cheipt ansible
+[ansibleroot@controller-vm .ssh]$ ssh-keygen -t rsa -b 4096 -f ~/.ssh/ansible_key
+Generating public/private rsa key pair.
+[ansibleroot@controller-vm .ssh]$ ll
+total 16
+-rw-------. 1 ansibleroot ansibleroot 3389 Jun 19 21:30 ansible_key
+-rw-r--r--. 1 ansibleroot ansibleroot  751 Jun 19 21:30 ansible_key.pub
+
+59. ssh ok intre vm2 (ansible controller) si vm1 ( deployment target)
+
+ansibleroot@controller-vm .ssh]$ ssh -i ansible_key crismandroot@20.51.132.17
+
+60. install ansible on vm2
+sudo dnf install -y ansible
+
+61. verificat versiunea
+[ansibleroot@controller-vm .ssh]$ ansible --version
+ansible 2.9.27
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = ['/home/ansibleroot/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3.6/site-packages/ansible
+  executable location = /usr/bin/ansible
+  python version = 3.6.8 (default, Apr 16 2026, 23:54:45) [GCC 8.5.0 20210514 (Red Hat 8.5.0-28)]
+
+62. creat inventory.ini cu hostul vm1 si testat ssh:
+[ansibleroot@controller-vm ansible]$ cat inventory.ini
+[app]
+vm1 ansible_host=20.51.132.17 ansible_user=crismandroot ansible_ssh_private_key_file=~/.ssh/ansible_key
+
+[ansibleroot@controller-vm ansible]$ ansible -i inventory.ini app -m ping
+vm1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/libexec/platform-python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+63.  creat deploy.yaml 
+[ansibleroot@controller-vm ansible]$ cat deploy.yml
+- name: Deploy Spring Petclinic
+  hosts: app
+  become: yes
+
+  tasks:
+    - name: Install Java
+      dnf:
+        name: java-17-openjdk
+        state: present
+
+    - name: Create app directory
+      file:
+        path: /opt/petclinic
+        state: directory
+
+    - name: Copy jar
+      copy:
+        src: spring-petclinic.jar
+        dest: /opt/petclinic/app.jar
+
+    - name: Run app
+      shell: |
+        pkill -f app.jar || true
+        nohup java -jar /opt/petclinic/app.jar > /opt/petclinic/log.txt 2>&1 &
+
+
+64. copiat jar-ul pe vm2 
+///de continuat ansible pt push/copiat artifcat din azure devops pipeline
+
+
+
 
 
 
