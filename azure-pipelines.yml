@@ -32,24 +32,41 @@ steps:
     ArtifactName: 'petclinic-jar'
 
 # ======================
-# DEPLOY TO CONTROLLER VM
+# DOWNLOAD ARTIFACT
 # ======================
-- stage: DeployToController
-  dependsOn: Build
-  jobs:
-  - job: SendJar
-    steps:
+- task: DownloadBuildArtifacts@0
+  inputs:
+    buildType: 'current'
+    downloadType: 'single'
+    artifactName: 'petclinic-jar'
+    downloadPath: '$(System.ArtifactsDirectory)'
 
-    - task: DownloadBuildArtifacts@0
-      inputs:
-        buildType: 'current'
-        downloadType: 'single'
-        artifactName: 'petclinic-jar'
-        downloadPath: '$(System.ArtifactsDirectory)'
 
-    - task: CopyFilesOverSSH@0
-      inputs:
-        sshEndpoint: 'controller-ssh'
-        sourceFolder: '$(System.ArtifactsDirectory)/petclinic-jar'
-        contents: '**/*.jar'
-        targetFolder: '/home/ansibleroot/ansible'
+# ======================
+# COPY TO CONTROLLER VM
+# ======================
+- task: CopyFilesOverSSH@0
+  inputs:
+    sshEndpoint: 'controller-ssh'
+    sourceFolder: '$(System.ArtifactsDirectory)/petclinic-jar'
+    contents: '**/*.jar'
+    targetFolder: '/home/ansibleroot/petclinic'
+
+
+# ======================
+# RUN ANSIBLE FROM CONTROLLER
+# ======================
+- task: SSH@0
+  inputs:
+    sshEndpoint: 'controller-ssh'
+    runOptions: 'inline'
+    inline: |
+      set -e
+
+      echo "Deploying Spring PetClinic via Ansible..."
+
+      cd /home/ansibleroot/ansible
+
+      cp /home/ansibleroot/petclinic/*.jar spring-petclinic.jar
+
+      ansible-playbook -i inventory.ini deploy.yml
