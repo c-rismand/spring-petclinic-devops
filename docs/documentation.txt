@@ -52,7 +52,7 @@ To https://github.com/c-rismand/spring-petclinic-devops.git
  * [new branch]      main -> main
 branch 'main' set up to track 'origin/main'.
 
-23. cream azure devops yaml file in spring-petclinic-devops
+23. creat azure devops yaml file in spring-petclinic-devops
 notepad azure-pipelines.yml
 git add azure-pipelines.yml
 git commit -m "Add Azure DevOps CI pipeline"
@@ -185,9 +185,77 @@ vm1 | SUCCESS => {
 64. copiat jar-ul pe vm2 
 ///de continuat ansible pt push/copiat artifcat din azure devops pipeline
 
+65. modificat azure-pipelines.yaml cu sectiunea pt deployment catre ansible controller
+
+66. creat service connections pt ansible controller
+
+67. git push la azure pipelines cu partea de CD, cere permisiune in gui in timpul run-ului.
+
+Granting permission here will permit the use of Service connection 'ansible controller' for all waiting and future runs of this pipeline.
+
+-> permission granted
+68. failed, lipsea cheia publica din noua pereche de ansible keys in authorized keys pe ansible controller -> adaugat
+69. rerun pipeline
+70. fail din cauza ansible task care a picat la "run app", jar-ul a fost copiat atat pe vm2 cat si pe vm1, dar posibil sa failuiasca din cauza ca ansible vede problematic folosirea nohup si & -> posibila solutie, creare systemd service pt app pt a o putea porni automat
+71. creat backup  : [ansibleroot@controller-vm ansible]$ cp deploy.yml deploy.yml_bkp
+72. modificat ansible deploy.yaml ->
+[ansibleroot@controller-vm ansible]$ cat deploy.yml
+- name: Deploy Spring Petclinic
+  hosts: app
+  become: yes
+
+  tasks:
+
+    - name: Install Java 17
+      dnf:
+        name: java-17-openjdk
+        state: present
+
+    - name: Create application directory
+      file:
+        path: /opt/petclinic
+        state: directory
+        mode: '0755'
+
+    - name: Copy Spring Boot jar
+      copy:
+        src: spring-petclinic.jar
+        dest: /opt/petclinic/app.jar
+        mode: '0755'
+
+    - name: Create systemd service for Petclinic
+      copy:
+        dest: /etc/systemd/system/petclinic.service
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Spring Petclinic Application
+          After=network.target
+
+          [Service]
+          User=root
+          WorkingDirectory=/opt/petclinic
+          ExecStart=/usr/bin/java -jar /opt/petclinic/app.jar
+          SuccessExitStatus=143
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start Petclinic service
+      systemd:
+        name: petclinic
+        state: restarted
+        enabled: yes
 
 
 
+73. RUN SUCCESS
 
 
 
