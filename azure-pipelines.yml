@@ -47,7 +47,7 @@ steps:
 # ======================
 - task: CopyFilesOverSSH@0
   inputs:
-    sshEndpoint: 'controller-ssh'
+    sshEndpoint: 'ansible controller'
     sourceFolder: '$(System.ArtifactsDirectory)/petclinic-jar'
     contents: '**/*.jar'
     targetFolder: '/home/ansibleroot/petclinic'
@@ -58,7 +58,7 @@ steps:
 # ======================
 - task: SSH@0
   inputs:
-    sshEndpoint: 'controller-ssh'
+    sshEndpoint: 'ansible controller'
     runOptions: 'inline'
     inline: |
       set -e
