@@ -30,3 +30,26 @@ steps:
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'petclinic-jar'
+
+# ======================
+# DEPLOY TO CONTROLLER VM
+# ======================
+- stage: DeployToController
+  dependsOn: Build
+  jobs:
+  - job: SendJar
+    steps:
+
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'petclinic-jar'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+    - task: CopyFilesOverSSH@0
+      inputs:
+        sshEndpoint: 'controller-ssh'
+        sourceFolder: '$(System.ArtifactsDirectory)/petclinic-jar'
+        contents: '**/*.jar'
+        targetFolder: '/home/ansibleroot/ansible'
