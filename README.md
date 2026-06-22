@@ -1,35 +1,16 @@
-\# Spring PetClinic DevOps Project
+CI/CD implementation for Spring PetClinic.
 
+- Spring Boot application
 
+- Azure DevOps CI/CD
 
-\## Overview
+- Ansible deployment
 
+- Azure VM
 
+- Prometheus monitoring
 
-End-to-end DevOps implementation for Spring PetClinic.
-
-
-
-\## Components
-
-
-
-\- Spring Boot application
-
-\- Azure DevOps CI/CD
-
-\- Ansible deployment
-
-\- Azure VM
-
-\- Prometheus monitoring
-
-\- Grafana dashboards
-
-
-
-\## Architecture
-
+- Grafana dashboards
 
 
 GitHub -> Azure DevOps -> Artifact -> Deployment -> Monitoring
