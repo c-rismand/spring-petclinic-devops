@@ -1,0 +1,52 @@
+- name: Deploy Spring Petclinic
+  hosts: app
+  become: yes
+
+  tasks:
+
+    - name: Install Java 17
+      dnf:
+        name: java-17-openjdk
+        state: present
+
+    - name: Create application directory
+      file:
+        path: /opt/petclinic
+        state: directory
+        mode: '0755'
+
+    - name: Copy Spring Boot jar
+      copy:
+        src: spring-petclinic.jar
+        dest: /opt/petclinic/app.jar
+        mode: '0755'
+
+    - name: Create systemd service for Petclinic
+      copy:
+        dest: /etc/systemd/system/petclinic.service
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Spring Petclinic Application
+          After=network.target
+
+          [Service]
+          User=root
+          WorkingDirectory=/opt/petclinic
+          ExecStart=/usr/bin/java -jar /opt/petclinic/app.jar
+          SuccessExitStatus=143
+          Restart=always
+          RestartSec=5
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start Petclinic service
+      systemd:
+        name: petclinic
+        state: restarted
+        enabled: yes
